@@ -3,6 +3,8 @@ import paydunya from 'paydunya';
 import dotenv from 'dotenv';
 dotenv.config();
 
+// Server DHCP UNIFY 
+
 const app = express();
 app.use(express.json());
 
@@ -29,10 +31,10 @@ const store = new paydunya.Store({
 router.post('/initier-paiement', async (req, res) => {
   console.log('Corps de la requête reçu :', req.body);
 
-  const { description, montant } = req.body;
+  const { titre,description, montant } = req.body;
 
-  if (!description || !montant) {
-    return res.status(400).json({ error: 'Description et montant sont requis.' });
+  if ( !titre || !description || !montant) {
+    return res.status(400).json({ error: 'Titre, Description et montant sont requis.' });
   }
 
   const montantNum = Number(montant);
@@ -44,10 +46,11 @@ router.post('/initier-paiement', async (req, res) => {
   const invoice = new paydunya.CheckoutInvoice(setup, store);
 
   // Ajout d'un identifiant unique
-  invoice.addCustomData('transaction_id', `edu-${Date.now()}`);
+  const uniqueId = `edu-${Date.now()}`;
+  invoice.addCustomData('transaction_id', uniqueId);
 
   // Ajout d'un article à la facture
-  invoice.addItem(description, 1, montantNum, montantNum, description);
+  invoice.addItem(titre, 1, montantNum, montantNum, description);
 
   // Définition du montant total de la facture
   invoice.totalAmount = montantNum;
@@ -61,7 +64,7 @@ router.post('/initier-paiement', async (req, res) => {
       console.log('Facture créée avec succès :', invoice);
       res.json({ url: invoice.url, invoiceId: invoice.token });
     } else {
-      console.error('Erreur PayDunya complète :', invoice.responseText);
+      console.error('Erreur de PayDunya complète :', invoice.responseText);
       // Si la transaction existe déjà, renvoyez les informations pertinentes
       if (invoice.responseText.includes('Transaction Found')) {
         res.status(200).json({
@@ -70,7 +73,9 @@ router.post('/initier-paiement', async (req, res) => {
           invoiceId: invoice.token,
         });
       } else {
-        res.status(400).json({ error: invoice.responseText });
+        res.status(400).json({
+          message: 'Nouvelle Transaction',
+           error: invoice.responseText });
       }
     }
   } catch (error) {
