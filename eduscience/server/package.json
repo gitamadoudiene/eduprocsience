@@ -25,5 +25,8 @@
     "parser": "^0.1.4",
     "paydunya": "^1.0.12",
     "stripe": "^17.7.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.2"
   }
 }
